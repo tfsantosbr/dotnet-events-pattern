@@ -1,0 +1,1 @@
+# dotnet-event-patterns
