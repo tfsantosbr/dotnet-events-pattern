@@ -7,7 +7,7 @@ public class UserCreatedHandler : IEventHandler<UserCreatedEvent>
 {
     public Task HandleAsync(UserCreatedEvent userCreatedEvent, CancellationToken cancellationToken = default)
     {
-        Console.WriteLine($"User with id '{userCreatedEvent.UserId}' and name '{userCreatedEvent.UserName}' has been created");
+        Console.WriteLine($"User with id '{userCreatedEvent.UserId}' has been created");
 
         return Task.CompletedTask;
     }

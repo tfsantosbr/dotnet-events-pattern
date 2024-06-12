@@ -1,10 +1,14 @@
 ﻿using EventPatterns.Example.Abstractions;
 using EventPatterns.Example.Events;
+using EventPatterns.Example.Extensions;
 using EventPatterns.Example.Handlers;
 using EventPatterns.Example.Implementations;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 var services = new ServiceCollection();
+
+services.AddLogging(builder => builder.AddConsole());
 
 services.AddTransient<IEventHandler<UserCreatedEvent>, UserCreatedHandler>();
 services.AddTransient<IEventHandler<UserCreatedEvent>, UserCreatedNotificationHandler>();
@@ -14,17 +18,8 @@ services.AddSingleton<IEventDispatcher>(serviceProvider =>
 {
     var dispatcher = new EventDispatcher();
 
-    var userCreatedHandlers = serviceProvider.GetServices<IEventHandler<UserCreatedEvent>>();
-    foreach (var handler in userCreatedHandlers)
-    {
-        dispatcher.Register<UserCreatedEvent>(handler.HandleAsync);
-    }
-
-    var orderPlacedHandlers = serviceProvider.GetServices<IEventHandler<OrderPlacedEvent>>();
-    foreach (var handler in orderPlacedHandlers)
-    {
-        dispatcher.Register<OrderPlacedEvent>(handler.HandleAsync);
-    }
+    dispatcher.RegisterEventHandlers<UserCreatedEvent>(serviceProvider);
+    dispatcher.RegisterEventHandlers<OrderPlacedEvent>(serviceProvider);
 
     return dispatcher;
 });
@@ -33,7 +28,7 @@ var app = services.BuildServiceProvider();
 
 var dispatcher = app.GetRequiredService<IEventDispatcher>();
 
-var userCreatedEvent = new UserCreatedEvent(Guid.NewGuid(), "Tiago Santos");
+var userCreatedEvent = new UserCreatedEvent(Guid.NewGuid());
 await dispatcher.DispatchAsync(userCreatedEvent, CancellationToken.None);
 
 var orderPlacedEvent = new OrderPlacedEvent(Guid.NewGuid());
