@@ -37,7 +37,7 @@ public class EventPatternsBenchmark
 
     }
 
-    [Params(5)]
+    [Params(10000, 100000, 1000000)]
     public int EventCount { get; set; }
 
     [Benchmark(Baseline = true)]
