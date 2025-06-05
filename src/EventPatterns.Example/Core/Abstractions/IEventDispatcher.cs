@@ -1,4 +1,4 @@
-namespace EventPatterns.Example.Abstractions;
+namespace EventPatterns.Example.Core.Abstractions;
 
 public interface IEventDispatcher
 {

@@ -1,10 +1,9 @@
-using EventPatterns.Example.Abstractions;
-using EventPatterns.Example.Events;
+using EventPatterns.Example.Core.Abstractions;
 using MediatR;
 
-namespace EventPatterns.Example.Handlers;
+namespace EventPatterns.Example.Events;
 
-public class UserCreatedHandler : IEventHandler<UserCreatedEvent>
+public class UserCreatedEventHandler : IEventHandler<UserCreatedEvent>
 {
     public Task HandleAsync(UserCreatedEvent userCreatedEvent, CancellationToken cancellationToken = default)
     {
@@ -14,7 +13,7 @@ public class UserCreatedHandler : IEventHandler<UserCreatedEvent>
     }
 }
 
-public class UserCreatedMediatrHandler : INotificationHandler<UserCreatedEvent>
+public class UserCreatedEventMediatrHandler : INotificationHandler<UserCreatedEvent>
 {
     public Task Handle(UserCreatedEvent userCreatedEvent, CancellationToken cancellationToken)
     {

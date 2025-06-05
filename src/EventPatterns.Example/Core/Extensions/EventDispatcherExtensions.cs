@@ -1,7 +1,7 @@
-using EventPatterns.Example.Abstractions;
+using EventPatterns.Example.Core.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace EventPatterns.Example.Extensions;
+namespace EventPatterns.Example.Core.Extensions;
 
 public static class EventDispatcherExtensions
 {

@@ -1,11 +1,10 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Order;
-using EventPatterns.Example.Abstractions;
+using EventPatterns.Example.Core.Abstractions;
+using EventPatterns.Example.Core.Extensions;
+using EventPatterns.Example.Core.Implementations;
 using EventPatterns.Example.Events;
-using EventPatterns.Example.Extensions;
-using EventPatterns.Example.Handlers;
-using EventPatterns.Example.Implementations;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -29,9 +28,9 @@ public class EventPatternsBenchmark
 
         // Manual Handlers
 
-        services.AddTransient<IEventHandler<UserCreatedEvent>, UserCreatedHandler>();
+        services.AddTransient<IEventHandler<UserCreatedEvent>, UserCreatedEventHandler>();
         services.AddTransient<IEventHandler<UserCreatedEvent>, UserCreatedNotificationHandler>();
-        services.AddTransient<IEventHandler<OrderPlacedEvent>, OrderPlacedHandler>();
+        services.AddTransient<IEventHandler<OrderPlacedEvent>, OrderPlacedEventHandler>();
 
         services.AddSingleton<IEventDispatcher>(serviceProvider =>
         {

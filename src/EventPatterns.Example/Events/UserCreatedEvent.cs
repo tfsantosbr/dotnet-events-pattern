@@ -1,4 +1,4 @@
-using EventPatterns.Example.Implementations;
+using EventPatterns.Example.Core.Implementations;
 using MediatR;
 
 namespace EventPatterns.Example.Events;
