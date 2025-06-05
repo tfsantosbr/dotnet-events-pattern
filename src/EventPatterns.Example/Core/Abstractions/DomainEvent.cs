@@ -1,6 +1,4 @@
-using EventPatterns.Example.Core.Abstractions;
-
-namespace EventPatterns.Example.Core.Implementations;
+namespace EventPatterns.Example.Core.Abstractions;
 
 public abstract record DomainEvent : IDomainEvent
 {

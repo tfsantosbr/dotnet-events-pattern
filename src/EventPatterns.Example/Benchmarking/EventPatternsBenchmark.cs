@@ -1,9 +1,7 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Order;
-using EventPatterns.Example.Core.Abstractions;
-using EventPatterns.Example.Core.Extensions;
-using EventPatterns.Example.Core.Implementations;
+using EventPatterns.Example.Core.Implementations.DomainEventsDispatcherImplementation;
 using EventPatterns.Example.Events;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,100 +16,47 @@ namespace EventPatterns.Example.Benchmarking;
 [RankColumn]
 public class EventPatternsBenchmark
 {
-    private IEventDispatcher _eventDispatcher = null!;
+    private IDomainEventsDispatcher _domainEventsDispatcher = null!;
     private IPublisher _publisher = null!;
 
     [GlobalSetup]
     public void Setup()
     {
         var services = new ServiceCollection();
+        var assembly = typeof(Program).Assembly;
 
-        // Manual Handlers
+        // Add Domain Handlers
+        services.AddDomainHandlersFromAssembly(assembly);
 
-        services.AddTransient<IEventHandler<UserCreatedEvent>, UserCreatedEventHandler>();
-        services.AddTransient<IEventHandler<UserCreatedEvent>, UserCreatedNotificationHandler>();
-        services.AddTransient<IEventHandler<OrderPlacedEvent>, OrderPlacedEventHandler>();
-
-        services.AddSingleton<IEventDispatcher>(serviceProvider =>
-        {
-            var dispatcher = new EventDispatcher();
-
-            dispatcher.RegisterEventHandlers<UserCreatedEvent>(serviceProvider);
-            dispatcher.RegisterEventHandlers<OrderPlacedEvent>(serviceProvider);
-
-            return dispatcher;
-        });
-
-        // Mediatr
-
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblyContaining<UserCreatedEvent>());
+        // Add Mediatr Handlers
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(assembly));
 
         var serviceProvider = services.BuildServiceProvider();
-
-        _eventDispatcher = serviceProvider.GetRequiredService<IEventDispatcher>();
+        _domainEventsDispatcher = serviceProvider.GetRequiredService<IDomainEventsDispatcher>();
         _publisher = serviceProvider.GetRequiredService<IPublisher>();
+
     }
 
-    [Params(100, 50, 1000)]
+    [Params(5)]
     public int EventCount { get; set; }
 
     [Benchmark(Baseline = true)]
-    public async Task DomainEventsWithoutMediatr()
+    public async Task MediatrPublisher()
     {
         for (int i = 0; i < EventCount; i++)
         {
-            var userCreatedEvent = new UserCreatedEvent(Guid.NewGuid());
-            await _eventDispatcher.DispatchAsync(userCreatedEvent, CancellationToken.None);
-
-            var orderPlacedEvent = new OrderPlacedEvent(Guid.NewGuid());
-            await _eventDispatcher.DispatchAsync(orderPlacedEvent, CancellationToken.None);
+            await _publisher.Publish(new SampleDomainEvent250());
+            await _publisher.Publish(new SampleDomainEvent420());
         }
     }
 
     [Benchmark]
-    public async Task DomainEventsWithMediatr()
+    public async Task DomainEventsDispatcher()
     {
         for (int i = 0; i < EventCount; i++)
         {
-            var userCreatedEvent = new UserCreatedEvent(Guid.NewGuid());
-            await _publisher.Publish(userCreatedEvent);
-
-            var orderPlacedEvent = new OrderPlacedEvent(Guid.NewGuid());
-            await _publisher.Publish(orderPlacedEvent);
-        }
-    }
-
-    [Benchmark]
-    public async Task BatchEventsWithoutMediatr()
-    {
-        var events = new List<DomainEvent>();
-
-        for (int i = 0; i < EventCount; i++)
-        {
-            events.Add(new UserCreatedEvent(Guid.NewGuid()));
-            events.Add(new OrderPlacedEvent(Guid.NewGuid()));
-        }
-
-        foreach (var @event in events)
-        {
-            await _eventDispatcher.DispatchAsync(@event, CancellationToken.None);
-        }
-    }
-
-    [Benchmark]
-    public async Task BatchEventsWithMediatr()
-    {
-        var events = new List<DomainEvent>();
-
-        for (int i = 0; i < EventCount; i++)
-        {
-            events.Add(new UserCreatedEvent(Guid.NewGuid()));
-            events.Add(new OrderPlacedEvent(Guid.NewGuid()));
-        }
-
-        foreach (var @event in events)
-        {
-            await _publisher.Publish(@event);
+            await _domainEventsDispatcher.DispatchAsync(new SampleDomainEvent250());
+            await _domainEventsDispatcher.DispatchAsync(new SampleDomainEvent420());
         }
     }
 }
