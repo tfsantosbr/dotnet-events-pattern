@@ -2,7 +2,7 @@
 using EventPatterns.Example.Core.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace EventPatterns.Example.Core.Implementations.DomainEventsDispatcherImplementation;
+namespace EventPatterns.Example.Core.Extensions;
 
 public static class HandlersDependencyInjection
 {
@@ -23,8 +23,6 @@ public static class HandlersDependencyInjection
                 }
             }
         }
-
-        services.AddTransient<IDomainEventsDispatcher, DomainEventsDispatcher>();
 
         return services;
     }

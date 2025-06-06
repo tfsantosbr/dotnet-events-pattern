@@ -1,7 +1,8 @@
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Order;
-using EventPatterns.Example.Core.Implementations.DomainEventsDispatcherImplementation;
+using EventPatterns.Example.Core.Extensions;
+using EventPatterns.Example.Core.Implementations.DomainPublisherImplementation;
 using EventPatterns.Example.Events;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,47 +17,54 @@ namespace EventPatterns.Example.Benchmarking;
 [RankColumn]
 public class EventPatternsBenchmark
 {
-    private IDomainEventsDispatcher _domainEventsDispatcher = null!;
-    private IPublisher _publisher = null!;
+    private IPublisher _mediatrPublisher = null!;
+    private IDomainPublisher _domainPublisher = null!;
 
-    [GlobalSetup]
-    public void Setup()
+    [Params(10000, 100000, 1000000)]
+    public int EventCount { get; set; }
+
+    [GlobalSetup(Target = nameof(MediatrPublisher))]
+    public void SetupMediatrPublisher()
     {
         var services = new ServiceCollection();
         var assembly = typeof(Program).Assembly;
 
-        // Add Domain Handlers
-        services.AddDomainHandlersFromAssembly(assembly);
-
-        // Add Mediatr Handlers
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(assembly));
 
-        var serviceProvider = services.BuildServiceProvider();
-        _domainEventsDispatcher = serviceProvider.GetRequiredService<IDomainEventsDispatcher>();
-        _publisher = serviceProvider.GetRequiredService<IPublisher>();
-
+        var provider = services.BuildServiceProvider();
+        _mediatrPublisher = provider.GetRequiredService<IPublisher>();
     }
 
-    [Params(10000, 100000, 1000000)]
-    public int EventCount { get; set; }
+    [GlobalSetup(Target = nameof(DomainPublisher))]
+    public void SetupDomainPublisher()
+    {
+        var services = new ServiceCollection();
+        var assembly = typeof(Program).Assembly;
+
+        services.AddDomainHandlersFromAssembly(assembly);
+        services.AddTransient<IDomainPublisher, DomainPublisher>();
+
+        var provider = services.BuildServiceProvider();
+        _domainPublisher = provider.GetRequiredService<IDomainPublisher>();
+    }
 
     [Benchmark(Baseline = true)]
     public async Task MediatrPublisher()
     {
         for (int i = 0; i < EventCount; i++)
         {
-            await _publisher.Publish(new SampleDomainEvent250());
-            await _publisher.Publish(new SampleDomainEvent420());
+            await _mediatrPublisher.Publish(new SampleDomainEvent250());
+            await _mediatrPublisher.Publish(new SampleDomainEvent420());
         }
     }
 
     [Benchmark]
-    public async Task DomainEventsDispatcher()
+    public async Task DomainPublisher()
     {
         for (int i = 0; i < EventCount; i++)
         {
-            await _domainEventsDispatcher.DispatchAsync(new SampleDomainEvent250());
-            await _domainEventsDispatcher.DispatchAsync(new SampleDomainEvent420());
+            await _domainPublisher.Publish(new SampleDomainEvent250());
+            await _domainPublisher.Publish(new SampleDomainEvent420());
         }
     }
 }
