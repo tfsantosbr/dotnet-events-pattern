@@ -15,7 +15,9 @@ public class DomainPublisher(IServiceProvider serviceProvider) : IDomainPublishe
         var handler = _domainEventHandlers.GetOrAdd(domainEvent.GetType(), static domainEventType =>
         {
             var wrapperType = typeof(DomainEventHandlerWrapperImpl<>).MakeGenericType(domainEventType);
-            var wrapper = Activator.CreateInstance(wrapperType) ?? throw new InvalidOperationException($"Could not create wrapper for type {domainEventType}");
+            var wrapper = Activator.CreateInstance(wrapperType) ??
+                throw new InvalidOperationException($"Could not create wrapper for type {domainEventType}");
+
             return (DomainEventHandlerWrapper)wrapper;
         });
 

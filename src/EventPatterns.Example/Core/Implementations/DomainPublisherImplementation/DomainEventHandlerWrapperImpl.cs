@@ -12,13 +12,11 @@ public class DomainEventHandlerWrapperImpl<TDomainEvent> : DomainEventHandlerWra
     {
         var handlers = serviceProvider
             .GetServices<IDomainEventHandler<TDomainEvent>>()
-            .Select(static handler =>
-                new DomainEventHandlerExecutor(
-                    HandlerInstance: handler,
-                    HandlerCallback: (theDomainEvent, theToken) =>
-                        handler.HandleAsync((TDomainEvent)theDomainEvent, theToken)
-                    )
-                );
+            .Select(static handler => new DomainEventHandlerExecutor(
+                HandlerInstance: handler,
+                HandlerCallback: (eventToHandle, token) =>
+                    handler.HandleAsync((TDomainEvent)eventToHandle, token)
+                ));
 
         return publish(handlers, domainEvent, cancellationToken);
     }
